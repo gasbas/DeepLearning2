@@ -101,12 +101,12 @@ def train_RBM(X, RBM, epochs, lr, batch_size):
             gen_x = sortie_entree_RBM(gen_h, RBM)
 
             reconstruction_error += torch.sum((x - gen_x) ** 2)
-        history.append(reconstruction_error / X.shape[0])
+        history.append((reconstruction_error / X.shape[0]).item())
         if epoch % 50 == 0 : 
             print(f'EPOCH {epoch} - Reconstruction Error: {history[epoch]:0.4f}')
     return RBM, history
 
-def generer_image_RBM(trained_RBM, gibbs_iters, n_images):
+def generer_image_RBM(trained_RBM, gibbs_iters, n_images, plot = True):
     p, _ = trained_RBM.W.shape
     images = []
 
@@ -120,8 +120,9 @@ def generer_image_RBM(trained_RBM, gibbs_iters, n_images):
 
         img = v.view( (20, 16)).detach().cpu().numpy()
         images.append(img)
-        plt.imshow(img)
-        plt.show()
+        if plot : 
+            plt.imshow(img)
+            plt.show()
 
     return images
 
