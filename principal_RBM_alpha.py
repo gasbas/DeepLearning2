@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
-
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 
@@ -12,20 +12,20 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--digit",
     default=0,
-    help="Number between 0 and 35. Index of Binary Digit to train on",
+    help="Number between 0 and 35. Index of Binary Digit to train on", type = int
 )
-parser.add_argument("--q", default=100, help="Number of hidden neurons")
-parser.add_argument("--lr", default=0.01, help="Learning rate for gradient ascent")
-parser.add_argument("-bs", "--batch_size", default=10, help="Number of input in batch")
-parser.add_argument("--epochs", default=1000, help="Number of training iterations")
+parser.add_argument("--q", default=100, help="Number of hidden neurons", type = int)
+parser.add_argument("--lr", default=0.1, help="Learning rate for gradient ascent", type = float)
+parser.add_argument("-bs", "--batch_size", default=5, help="Number of input in batch", type = int)
+parser.add_argument("--epochs", default=1000, help="Number of training iterations", type = int)
 parser.add_argument(
     "-gi",
     "--gibbs_iter",
     default=1000,
-    help="Number of Gibbs iterations to generate images",
+    help="Number of Gibbs iterations to generate images", type = int
 )
 parser.add_argument(
-    "-ni", "--n_images", default=1, help="Number of images to generate with trained RBM"
+    "-ni", "--n_images", default=1, help="Number of images to generate with trained RBM", type = int
 )
 
 
@@ -94,8 +94,8 @@ def grad_b(x, v_1, RBM):
 def train_RBM(X, RBM, epochs, lr, batch_size):
 
     history = []
-
-    for epoch in range(epochs):
+    pbar = tqdm(range(epochs))
+    for epoch in pbar:
         rdm_indices = torch.randperm(X.size(0))
         X_ = X[rdm_indices]
         batch_indices = torch.arange(start=0, end=X.size(0), step=batch_size)
@@ -108,21 +108,19 @@ def train_RBM(X, RBM, epochs, lr, batch_size):
             h_0 = entree_sortie_RBM(x, RBM)
             v_1 = sortie_entree_RBM(h_0, RBM)
 
-            RBM.W += lr * grad_W(x, v_1, RBM)
+            RBM.W += lr * grad_W(x, v_1, RBM) / batch_size
             grad_a_ = grad_a(x, v_1)
             grad_b_ = grad_b(x, v_1, RBM)
 
-            for idx in range(x.shape[0]):
-                RBM.a += lr * grad_a_[idx]
-                RBM.b += lr * grad_b_[idx]
+            RBM.a += lr * grad_a_.sum(dim = 0) / batch_size
+            RBM.b += lr * grad_b_.sum(dim = 0) / batch_size
 
             gen_h = entree_sortie_RBM(x, RBM)
             gen_x = sortie_entree_RBM(gen_h, RBM)
 
             reconstruction_error += torch.sum((x - gen_x) ** 2)
         history.append((reconstruction_error / X.shape[0]).item())
-        if epoch % 50 == 0:
-            print(f"EPOCH {epoch} - Reconstruction Error: {history[epoch]:0.4f}")
+        pbar.set_description(f"EPOCH {epoch} - Reconstruction Error: {history[epoch]:0.4f}")
     return RBM, history
 
 
