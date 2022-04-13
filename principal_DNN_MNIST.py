@@ -29,6 +29,7 @@ parser.add_argument("--val_size", default=0, help="Fraction of training data to 
 parser.add_argument("--n_train", default=60000, help="Number of images to use as training data", type = int)
 parser.add_argument("--esr", default=30, help="Number of early stopping rounds", type = int)
 
+
 def lire_mnist(device = 'cpu', val_size = 0.05, n_images = 60000)  : 
     train_data = torchvision.datasets.MNIST('data/', train=True, download=True,
                                  transform=torchvision.transforms.Compose([
@@ -42,10 +43,10 @@ def lire_mnist(device = 'cpu', val_size = 0.05, n_images = 60000)  :
     x_test, y_test = test_data.data.view(-1,28*28) / 255, test_data.targets
     x_train, y_train = x_train[:n_images], y_train[:n_images]
     
-    x_train[x_train <= 0.5] = 0 
-    x_train[x_train>0.5] = 1
-    x_test[x_test<=0.5] = 0
-    x_test[x_test>0.5] = 1
+    x_train[x_train < 0.5] = 0 
+    x_train[x_train>=0.5] = 1
+    x_test[x_test<0.5] = 0
+    x_test[x_test>=0.5] = 1
     
     if val_size > 0 : 
         val_indices = torch.randperm(x_train.size(0))[: int(x_train.size(0) * val_size)]
@@ -116,7 +117,7 @@ def retropropagation(X, y, DNN, epochs, lr, batch_size, x_val = None, y_val = No
                 grad_b = c
                 
                 DNN[l-1].W -= lr * grad_W / batch_size
-                DNN[l-1].b -= lr * grad_b.mean(dim=0) 
+                DNN[l-1].b -= lr * grad_b.sum(dim = 0) / batch_size
                 
                 c = torch.mm(DNN[l-1].W, c.T).T
         
@@ -127,10 +128,11 @@ def retropropagation(X, y, DNN, epochs, lr, batch_size, x_val = None, y_val = No
             if accuracy_val > best_acc_val : 
                 best_acc_val = accuracy_val
                 e = 0
+                best_DNN = copy.deepcopy(DNN)
             else : 
                 e+=1 
                 if e == esr : 
-                    return DNN, history
+                    return best_DNN, history
         else : 
             accuracy_val = test_DNN(X,y, DNN)
             

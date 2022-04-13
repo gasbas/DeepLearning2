@@ -42,13 +42,15 @@ def init_DNN(depth, sizes, device, random_state = None):
     return {l: init_RBM(sizes[l][0], sizes[l][1], device) for l in range(depth)}
 
 
-def pretrain_DNN(data, DNN, epochs, lr, batch_size):
+def pretrain_DNN(data, DNN, epochs, lr, batch_size, DBN = False):
 
     x = copy.deepcopy(data)
     trained_DNN = dict()
 
     for index, layer in DNN.items():
-        if index < len(DNN)-1 : 
+
+        
+        if any([index < len(DNN)-1, DBN]) : 
             trained_DNN[index], _ = train_RBM(x, layer, epochs, lr, batch_size)
             x = entree_sortie_RBM(x, layer)
         else : 
