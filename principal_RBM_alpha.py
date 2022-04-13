@@ -1,4 +1,3 @@
-from struct import pack_into
 from scipy.io import loadmat
 import torch
 import numpy as np

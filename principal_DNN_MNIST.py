@@ -7,7 +7,7 @@ from tqdm import tqdm
 import torchvision
 import argparse
 import warnings
-
+import copy
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 

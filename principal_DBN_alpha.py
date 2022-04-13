@@ -1,6 +1,4 @@
-import sys
 import copy
-
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -21,7 +19,7 @@ parser.add_argument(
     help="Number between 0 and 35. Index of Binary Digit to train on",
 )
 parser.add_argument("--q", default=100, help="Number of hidden neurons", type = int)
-parser.add_argument('-n','--nlayers', default = 2, type = int)
+parser.add_argument('-n','--nlayers', default = 2, help = "Number of hidden layers", type = int)
 parser.add_argument("--lr", default=0.1, help="Learning rate for gradient ascent", type = float)
 parser.add_argument("-bs", "--batch_size", default=5, help="Number of input in batch", type = int)
 parser.add_argument("--epochs", default=1000, help="Number of training iterations", type = int)
